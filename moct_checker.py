@@ -6,18 +6,20 @@ from qgis.PyQt.QtWidgets import QAction
 
 from .resources import *
 from .moct_checker_dialog import MoctCheckerDialog
+from .login.login_dialog import LoginDialog
 import os.path
+
+isLocal = True
 
 
 class MoctChecker:
-    """QGIS Plugin Implementation."""
-
     def __init__(self, iface):
         self.iface = iface
         self.plugin_dir = os.path.dirname(__file__)
         self.actions = []
         self.menu = self.tr(u'&Moct Checker')
         self.first_start = None
+        self.is_login = False
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -54,11 +56,26 @@ class MoctChecker:
             self.iface.removeToolBarIcon(action)
 
     def run(self):
+        if not isLocal:
+            if not self.is_login:
+                ld = LoginDialog()
+                result = ld.exec_()
+                if result == 1:
+                    self.is_login = True
+                    pass
+                else:
+                    return
+                pass
+            pass
+        else:
+            pass
+
         if self.first_start:
             self.first_start = False
-            self.dlg = MoctCheckerDialog()
-        self.dlg.show()
+        self.dlg = MoctCheckerDialog()
+        self.dlg.show(self.iface)
         result = self.dlg.exec_()
+        del self.dlg.mlogger
         del self.dlg
         if result:
             pass
