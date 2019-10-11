@@ -75,6 +75,7 @@ class MoctChecker:
         self.dlg = MoctCheckerDialog()
         self.dlg.show(self.iface)
         result = self.dlg.exec_()
+
         del self.dlg.mlogger
         del self.dlg
         if result:

@@ -6,57 +6,166 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>241</width>
-    <height>174</height>
+    <width>250</width>
+    <height>170</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
-  <widget class="QTableView" name="tableView">
-   <property name="geometry">
-    <rect>
-     <x>100</x>
-     <y>10</y>
-     <width>131</width>
-     <height>151</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QWidget" name="verticalLayoutWidget">
+  <widget class="QGroupBox" name="groupBox">
    <property name="geometry">
     <rect>
      <x>10</x>
      <y>10</y>
-     <width>81</width>
-     <height>151</height>
+     <width>231</width>
+     <height>61</height>
     </rect>
    </property>
-   <layout class="QVBoxLayout" name="verticalLayout">
-    <item>
-     <widget class="QPushButton" name="btn_check">
-      <property name="text">
-       <string>검색</string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QPushButton" name="btn_load_link">
-      <property name="text">
-       <string>링크</string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QPushButton" name="btn_load_node">
-      <property name="text">
-       <string>노드</string>
-      </property>
-     </widget>
-    </item>
-   </layout>
+   <property name="title">
+    <string>작업상태(workstate)</string>
+   </property>
+   <widget class="QRadioButton" name="rbtn_fornew">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>20</y>
+      <width>111</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>신규 (1,2)</string>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="rbtn_forall">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>40</y>
+      <width>111</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>기존 (1,2,3,4,5)</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btn_check">
+    <property name="geometry">
+     <rect>
+      <x>130</x>
+      <y>10</y>
+      <width>91</width>
+      <height>46</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>검색</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QGroupBox" name="groupBox_2">
+   <property name="geometry">
+    <rect>
+     <x>9</x>
+     <y>79</y>
+     <width>131</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>오류 데이터</string>
+   </property>
+   <widget class="QPushButton" name="btn_load_node">
+    <property name="geometry">
+     <rect>
+      <x>70</x>
+      <y>20</y>
+      <width>51</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>노드</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btn_load_link">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>20</y>
+      <width>51</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>링크</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QGroupBox" name="groupBox_3">
+   <property name="geometry">
+    <rect>
+     <x>150</x>
+     <y>80</y>
+     <width>91</width>
+     <height>81</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>데이터 관리</string>
+   </property>
+   <widget class="QPushButton" name="btn_removefeature">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>20</y>
+      <width>71</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>선택 삭제</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btn_truncatetable">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>50</y>
+      <width>71</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>전체 초기화</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QPushButton" name="pushButton">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>132</y>
+     <width>131</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>ID 부여 Test</string>
+   </property>
   </widget>
  </widget>
+ <tabstops>
+  <tabstop>rbtn_fornew</tabstop>
+  <tabstop>rbtn_forall</tabstop>
+  <tabstop>btn_check</tabstop>
+  <tabstop>btn_load_link</tabstop>
+  <tabstop>btn_load_node</tabstop>
+  <tabstop>btn_removefeature</tabstop>
+  <tabstop>btn_truncatetable</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>
@@ -66,7 +175,7 @@
    <slot>ButtonCheckListener()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>115</x>
+     <x>150</x>
      <y>22</y>
     </hint>
     <hint type="destinationlabel">
@@ -75,10 +184,93 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>btn_load_link</sender>
+   <signal>clicked()</signal>
+   <receiver>Dialog</receiver>
+   <slot>ButtonLoadLinkLayerListener()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>52</x>
+     <y>118</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>159</x>
+     <y>39</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btn_load_node</sender>
+   <signal>clicked()</signal>
+   <receiver>Dialog</receiver>
+   <slot>ButtonLoadNodeLayerListener()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>97</x>
+     <y>112</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>179</x>
+     <y>67</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btn_removefeature</sender>
+   <signal>clicked()</signal>
+   <receiver>Dialog</receiver>
+   <slot>ButtonRemoveFeatureListener()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>185</x>
+     <y>111</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>123</x>
+     <y>145</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btn_truncatetable</sender>
+   <signal>clicked()</signal>
+   <receiver>Dialog</receiver>
+   <slot>ButtonTruncateTableListener()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>219</x>
+     <y>139</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>85</x>
+     <y>159</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton</sender>
+   <signal>clicked()</signal>
+   <receiver>Dialog</receiver>
+   <slot>btn_test()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>82</x>
+     <y>208</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>23</x>
+     <y>219</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>ButtonCheckListener()</slot>
-  <slot>ButtonLoadLayerListener()</slot>
-  <slot>ButtonLoginListener()</slot>
+  <slot>ButtonLoadLinkLayerListener()</slot>
+  <slot>ButtonLoadNodeLayerListener()</slot>
+  <slot>ButtonTruncateTableListener()</slot>
+  <slot>ButtonRemoveFeatureListener()</slot>
+  <slot>btn_test()</slot>
  </slots>
 </ui>
