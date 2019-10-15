@@ -184,7 +184,7 @@ class MoctCheckerDialog(QtWidgets.QDialog, FORM_CLASS):
         pass
 
     def btn_test(self):
-        tc = UpdateId()
+        tc = UpdateId(self.mlogger)
         tc.main_process()
         pass
 

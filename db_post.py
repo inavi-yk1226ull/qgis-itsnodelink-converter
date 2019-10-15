@@ -9,67 +9,44 @@ isLocal = True
 class DbPost:
 
     def __init__(self):
+        self.conn = psycopg.connect(database='spatialdb', user='dev', password='12qwaszx', host='127.0.0.1', port='5432')
         pass
 
     def pg_query_insert(self, _sqlstr):
-        global isLocal
-        if isLocal:
-            conn = psycopg.connect(database='spatialdb', user='dev',
-                                   password='12qwaszx', host='127.0.0.1', port='5432')
-        else:
-            conn = psycopg.connect(database='kslink', user='kslink_agent',
-                                   password='ag9TmuS875', host='61.33.249.242', port='5432')
-        cur = conn.cursor()
+        cur = self.conn.cursor()
         cur.execute(_sqlstr)
-        conn.commit()
+        self.conn.commit()
         cur.close()
         pass
 
     def connect(self):
-        conn = psycopg.connect(database='kslink', user='kslink_agent',
-                               password='ag9TmuS875', host='61.33.249.242', port='5432')
-        conn = psycopg.connect(database='spatialdb', user='dev',
-                               password='12qwaszx', host='127.0.0.1', port='5432')
-        return conn.closed  # 0이면 연결, 1이면 실패 or close
+        # self.conn = psycopg.connect(database='kslink', user='kslink_agent',
+        #                        password='ag9TmuS875', host='61.33.249.242', port='5432')
+        if self.conn is None:
+            self.conn = psycopg.connect(database='spatialdb', user='dev',
+                                password='12qwaszx', host='127.0.0.1', port='5432')
+            pass
+        return self.conn.closed  # 0이면 연결, 1이면 실패 or close
 
     def execute(self, _sqlstr):
-        global isLocal
-        if isLocal:
-            conn = psycopg.connect(database='spatialdb', user='dev',
-                                   password='12qwaszx', host='127.0.0.1', port='5432')
-        else:
-            conn = psycopg.connect(database='kslink', user='kslink_agent',
-                                   password='ag9TmuS875', host='61.33.249.242', port='5432')
-        cur = conn.cursor()
+        cur = self.conn.cursor()
         cur.execute(_sqlstr)
-        conn.commit()
+        self.conn.commit()
         cur.close()
         pass
 
     def execute_query(self, _sqlstr):
-        global isLocal
-        if isLocal:
-            conn = psycopg.connect(database='spatialdb', user='dev',
-                                   password='12qwaszx', host='127.0.0.1', port='5432')
-        else:
-            conn = psycopg.connect(database='kslink', user='kslink_agent',
-                                   password='ag9TmuS875', host='61.33.249.242', port='5432')
-        cur = conn.cursor()
+        cur = self.conn.cursor()
         cur.execute(_sqlstr)
         results = cur.fetchall()
+        self.conn.commit()
         cur.close()
         return results
 
     def execute_query_cursor(self, _sqlstr):
-        global isLocal
-        if isLocal:
-            conn = psycopg.connect(database='spatialdb', user='dev',
-                                   password='12qwaszx', host='127.0.0.1', port='5432')
-        else:
-            conn = psycopg.connect(database='kslink', user='kslink_agent',
-                                   password='ag9TmuS875', host='61.33.249.242', port='5432')
-        cur = conn.cursor()
+        cur = self.conn.cursor()
         cur.execute(_sqlstr)
+        self.conn.commit()
         return cur
 
     def load_pg_layer(self, host='', port='', data='', user='', pw='',
@@ -87,15 +64,8 @@ class DbPost:
         QgsProject.instance().addMapLayer(new_layer)
 
     def execute_with_args(self, sqlstr, param):
-        global isLocal
-        if isLocal:
-            conn = psycopg.connect(database='spatialdb', user='dev',
-                                   password='12qwaszx', host='127.0.0.1', port='5432')
-        else:
-            conn = psycopg.connect(database='kslink', user='kslink_agent',
-                                   password='ag9TmuS875', host='61.33.249.242', port='5432')
-        cur = conn.cursor()
+        cur = self.conn.cursor()
         cur.execute(sqlstr, param)
-        conn.commit()
+        self.conn.commit()
         cur.close()
         pass
