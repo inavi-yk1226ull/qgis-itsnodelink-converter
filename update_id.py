@@ -4,9 +4,6 @@ import logging
 import os
 
 
-
-
-
 class UpdateId:
     def __init__(self, _logger):
         self.post_db = DbPost()
@@ -15,6 +12,9 @@ class UpdateId:
         os.chdir(os.path.dirname(absFilePath))
         self.logpath = os.path.join(os.getcwd(), "logging.log")
         self.mlogger = _logger
+
+        # 링크의 권역 별 최대 일련번호 적재
+        self._dict = {}
         pass
 
     def logging_info(self, msg):
@@ -22,8 +22,7 @@ class UpdateId:
         self.mlogger.info(msg)
         pass
 
-    # 노드
-    # 권역 반복
+    # 노드 권역 반복작업
     def node_repeat_adm(self):
         sw = Stopwatch()
         sqlstr = "select region_cd from moct.adm_boundary"
@@ -32,11 +31,17 @@ class UpdateId:
         for row in rows:
             region_cd = row[0]
             serial_num = self.get_max_num(region_cd)
-            self.logging_info("  region_{0} get_max_num: ".format(region_cd, sw.CheckPoint()))
+            self.logging_info("  region_{0} get_max_num: {1}".format(region_cd, sw.CheckPoint()))
             print("region_cd: {0}, num: {1}".format(region_cd, serial_num))
             self.node_update_id(region_cd, int(serial_num) + 1, sw)
-            self.logging_info("  region_{0} 처리 완료: ".format(region_cd, sw.CheckPoint()))
+            self.logging_info("  region_{0} 처리 완료: {1}".format(region_cd, sw.CheckPoint()))
             pass
+
+        # 노드 id null인 항목 업데이트
+        sqlstr = " select * from moct.moct_node_data where node_id is null or node_id = '' "
+        # rows = self.post_db.execute_query(sqlstr)
+
+        self.logging_info("  if node_id is null 처리 완료: {0}".format(sw.CheckPoint()))
         pass
 
     # 권역 최대 일련번호 확인
@@ -107,7 +112,6 @@ class UpdateId:
     #             break
     #         pass
     #     pass
-
     # 일련번호 & id 부여
     # def link_update_id(self, current_adm, serial_num):
     #     sqlstr = "select * from moct.fn_select_link_if_linkid_is_null('{0}')".format(current_adm)
@@ -142,23 +146,42 @@ class UpdateId:
     #         self.post_db.execute_with_args(sqlstr, (link_id, tnode, fnode))
     #         pass
     #     cursor.close()
-
     # 최대 지역번호 + 일련번호 확인
     # return : 지역번호 + 일련번호 최대값, +1을 해야 신규 입력할 id값이 나온다
-    def link_get_max_num(self, current_adm):
-        sqlstr = "select * from moct.fn_select_max_serial_num('{0}')".format(current_adm)
-        rows = self.post_db.execute_query(sqlstr)
-        return rows[0][0]
+    # def link_get_max_num(self, current_adm):
+    #     sqlstr = "select * from moct.fn_select_max_serial_num('{0}')".format(current_adm)
+    #     rows = self.post_db.execute_query(sqlstr)
+    #     return rows[0][0]
 
+    # 권역 별 최대 일련번호 확인
+    def get_region_serial_code_all(self):
+        sqlstr = '''
+        select substring(link_id from 1 for 3)::integer
+            , max(substring(link_id from 4 for 5))::integer as serial
+        from moct.moct_link_data 
+        where is_delete is False
+        group by substring(link_id from 1 for 3)
+        '''
+        cursor = self.post_db.execute_query_cursor(sqlstr)
+        rows = cursor.fetchall()
+
+        _dict = {}
+        for row in rows:
+            _dict[row[0]] = row[1]
+            pass
+        cursor.close()
+        return _dict
+
+    # 링크 별 id 업데이트 및 쌍 링크 업데이트
     def update_link_id(self, is_bigger_t):
         sw = Stopwatch()
         self.logging_info("    is_bigger_t: {0}, {1}".format(is_bigger_t, sw.CheckPoint()))
         sqlstr = ''
         if is_bigger_t:
-            sqlstr = "select * from moct.moct_link_data where CAST(f_node AS BIGINT) > CAST(t_node AS BIGINT) AND (link_id is null or link_id = '')"
+            sqlstr = "select * from moct.moct_link_data where CAST(f_node AS BIGINT) > CAST(t_node AS BIGINT) AND (link_id is null or link_id = '') AND is_delete IS NOT True"
             pass
         else:
-            sqlstr = "select * from moct.moct_link_data where CAST(t_node AS BIGINT) > CAST(f_node AS BIGINT) AND (link_id is null or link_id = '')"
+            sqlstr = "select * from moct.moct_link_data where CAST(t_node AS BIGINT) > CAST(f_node AS BIGINT) AND (link_id is null or link_id = '') AND is_delete IS NOT True"
             pass
 
         cursor = self.post_db.execute_query_cursor(sqlstr)
@@ -172,7 +195,6 @@ class UpdateId:
         post_db_2.connect()
 
         for row in cursor:
-
             _gid = row[gid_field]
             _fnode = row[fnode_field]
             _tnode = row[tnode_field]
@@ -189,18 +211,26 @@ class UpdateId:
                 order by st_length desc
             """.format(_gid))
 
-            _region_cd = curs.fetchall()[0][0]
+            try:
+                _region_cd = curs.fetchall()[0][0]
+            except:
+                self.logging_info("    get link's region error gid is {0}, {1}".format(_gid, row))
+                continue
+
             curs.close()
 
             self.logging_info("    get link's region: {0}".format(sw.CheckPoint()))
 
             # 메인
-            _max_num = int(self.link_get_max_num(_region_cd)) + 1
+            # _max_num = int(self.link_get_max_num(_region_cd)) + 1
+            _max_num = int(_region_cd + str(self._dict[int(_region_cd)] + 1))
+
             _link_id = str(_max_num) + '00'
             _sqlstr = """ UPDATE moct.moct_link_data
                         SET link_id = %s
                         WHERE gid = %s"""
             self.post_db.execute_with_args(_sqlstr, (_link_id, _gid))
+            self._dict[int(_region_cd)] = self._dict[int(_region_cd)] + 1
 
             self.logging_info("    link update: {0}".format(sw.CheckPoint()))
 
@@ -211,6 +241,7 @@ class UpdateId:
                         SET link_id = %s
                         WHERE f_node = %s AND t_node = %s """
             self.post_db.execute_with_args(sqlstr, (_link_id, _tnode, _fnode))
+            self._dict[int(_region_cd)] = self._dict[int(_region_cd)] + 1
 
             self.logging_info("    pair link update: {0}".format(sw.CheckPoint()))
 
@@ -225,11 +256,15 @@ class UpdateId:
         self.logging_info("DB 연결: {0}".format(logsw.CheckPoint()))
         # self.node_repeat_adm()
         self.logging_info("노드 반복 종료: {0}".format(logsw.CheckPoint()))
+
+        # 권역 번호를 가져와서 리스트 저장한다.
+        _dict = self.get_region_serial_code_all()
+        self._dict = _dict
         self.update_link_id(True)
         self.logging_info("링크T 반복 종료: {0}".format(logsw.CheckPoint()))
         self.update_link_id(False)
         self.logging_info("링크F 반복 종료: {0}".format(logsw.CheckPoint()))
-        logsw.GetTotal()
+        self.logging_info("ID 부여 작업 종료: {0}".format(logsw.GetTotal()))
         pass
 
     pass
