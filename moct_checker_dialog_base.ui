@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>250</width>
-    <height>170</height>
+    <width>252</width>
+    <height>252</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,9 +17,9 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>10</y>
+     <y>70</y>
      <width>231</width>
-     <height>61</height>
+     <height>81</height>
     </rect>
    </property>
    <property name="title">
@@ -35,7 +35,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>신규 (1,2)</string>
+     <string>분할/병합 (3,4)</string>
     </property>
    </widget>
    <widget class="QRadioButton" name="rbtn_forall">
@@ -48,41 +48,67 @@
      </rect>
     </property>
     <property name="text">
-     <string>기존 (1,2,3,4,5)</string>
+     <string>신규/수정 (1,2)</string>
     </property>
    </widget>
    <widget class="QPushButton" name="btn_check">
     <property name="geometry">
      <rect>
       <x>130</x>
-      <y>10</y>
+      <y>50</y>
       <width>91</width>
-      <height>46</height>
+      <height>21</height>
      </rect>
     </property>
     <property name="text">
      <string>검색</string>
     </property>
    </widget>
+   <widget class="QRadioButton" name="rbtn_forall_2">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>60</y>
+      <width>111</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>ALL (1,2,3,4,5)</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btn_setid">
+    <property name="geometry">
+     <rect>
+      <x>130</x>
+      <y>20</y>
+      <width>91</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>ID 부여</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QGroupBox" name="groupBox_2">
    <property name="geometry">
     <rect>
-     <x>9</x>
-     <y>79</y>
-     <width>131</width>
-     <height>51</height>
+     <x>10</x>
+     <y>160</y>
+     <width>111</width>
+     <height>81</height>
     </rect>
    </property>
    <property name="title">
-    <string>오류 데이터</string>
+    <string>오류 데이터 load</string>
    </property>
    <widget class="QPushButton" name="btn_load_node">
     <property name="geometry">
      <rect>
-      <x>70</x>
-      <y>20</y>
-      <width>51</width>
+      <x>10</x>
+      <y>50</y>
+      <width>91</width>
       <height>21</height>
      </rect>
     </property>
@@ -95,7 +121,7 @@
      <rect>
       <x>10</x>
       <y>20</y>
-      <width>51</width>
+      <width>91</width>
       <height>21</height>
      </rect>
     </property>
@@ -107,21 +133,21 @@
   <widget class="QGroupBox" name="groupBox_3">
    <property name="geometry">
     <rect>
-     <x>150</x>
-     <y>80</y>
-     <width>91</width>
+     <x>130</x>
+     <y>160</y>
+     <width>111</width>
      <height>81</height>
     </rect>
    </property>
    <property name="title">
-    <string>데이터 관리</string>
+    <string>오류 데이터 관리</string>
    </property>
    <widget class="QPushButton" name="btn_removefeature">
     <property name="geometry">
      <rect>
       <x>10</x>
       <y>20</y>
-      <width>71</width>
+      <width>91</width>
       <height>21</height>
      </rect>
     </property>
@@ -134,7 +160,7 @@
      <rect>
       <x>10</x>
       <y>50</y>
-      <width>71</width>
+      <width>91</width>
       <height>21</height>
      </rect>
     </property>
@@ -143,18 +169,44 @@
     </property>
    </widget>
   </widget>
-  <widget class="QPushButton" name="pushButton">
+  <widget class="QGroupBox" name="groupBox_4">
    <property name="geometry">
     <rect>
-     <x>10</x>
-     <y>132</y>
-     <width>131</width>
-     <height>21</height>
+     <x>9</x>
+     <y>9</y>
+     <width>231</width>
+     <height>51</height>
     </rect>
    </property>
-   <property name="text">
-    <string>ID 부여 Test</string>
+   <property name="title">
+    <string>Test/Live 선택</string>
    </property>
+   <widget class="QRadioButton" name="rbtn_istest">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>20</y>
+      <width>90</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Test 버전</string>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="rbtn_islive">
+    <property name="geometry">
+     <rect>
+      <x>130</x>
+      <y>20</y>
+      <width>90</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Live 버전</string>
+    </property>
+   </widget>
   </widget>
  </widget>
  <tabstops>
@@ -176,7 +228,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>150</x>
-     <y>22</y>
+     <y>120</y>
     </hint>
     <hint type="destinationlabel">
      <x>5</x>
@@ -192,7 +244,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>52</x>
-     <y>118</y>
+     <y>180</y>
     </hint>
     <hint type="destinationlabel">
      <x>159</x>
@@ -207,8 +259,8 @@
    <slot>ButtonLoadNodeLayerListener()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>97</x>
-     <y>112</y>
+     <x>37</x>
+     <y>210</y>
     </hint>
     <hint type="destinationlabel">
      <x>179</x>
@@ -223,8 +275,8 @@
    <slot>ButtonRemoveFeatureListener()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>185</x>
-     <y>111</y>
+     <x>165</x>
+     <y>180</y>
     </hint>
     <hint type="destinationlabel">
      <x>123</x>
@@ -239,8 +291,8 @@
    <slot>ButtonTruncateTableListener()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>219</x>
-     <y>139</y>
+     <x>199</x>
+     <y>210</y>
     </hint>
     <hint type="destinationlabel">
      <x>85</x>
@@ -249,18 +301,50 @@
    </hints>
   </connection>
   <connection>
-   <sender>pushButton</sender>
+   <sender>btn_setid</sender>
    <signal>clicked()</signal>
    <receiver>Dialog</receiver>
-   <slot>btn_test()</slot>
+   <slot>ButtonSetIdListener()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>82</x>
-     <y>208</y>
+     <x>212</x>
+     <y>99</y>
     </hint>
     <hint type="destinationlabel">
-     <x>23</x>
-     <y>219</y>
+     <x>267</x>
+     <y>120</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>rbtn_istest</sender>
+   <signal>clicked()</signal>
+   <receiver>Dialog</receiver>
+   <slot>RbtnSetVersionListener()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>70</x>
+     <y>32</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>283</x>
+     <y>203</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>rbtn_islive</sender>
+   <signal>clicked()</signal>
+   <receiver>Dialog</receiver>
+   <slot>RbtnSetVersionListener()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>149</x>
+     <y>32</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>288</x>
+     <y>174</y>
     </hint>
    </hints>
   </connection>
@@ -271,6 +355,7 @@
   <slot>ButtonLoadNodeLayerListener()</slot>
   <slot>ButtonTruncateTableListener()</slot>
   <slot>ButtonRemoveFeatureListener()</slot>
-  <slot>btn_test()</slot>
+  <slot>ButtonSetIdListener()</slot>
+  <slot>RbtnSetVersionListener()</slot>
  </slots>
 </ui>

@@ -3,13 +3,12 @@ from qgis.core import QgsDataSourceUri, QgsVectorLayer, QgsProject
 
 from .psycopg2 import psycopg
 
-isLocal = True
-
 
 class DbPost:
 
     def __init__(self):
-        self.conn = psycopg.connect(database='spatialdb', user='dev', password='12qwaszx', host='127.0.0.1', port='5432')
+        #self.conn = psycopg.connect(database='spatialdb', user='dev', password='12qwaszx', host='127.0.0.1', port='5432')
+        self.conn = psycopg.connect(database='testdb', user='yk1226ull', password='inavi9610', host='61.33.249.241', port='5432')
         pass
 
     def pg_query_insert(self, _sqlstr):
@@ -23,8 +22,9 @@ class DbPost:
         # self.conn = psycopg.connect(database='kslink', user='kslink_agent',
         #                        password='ag9TmuS875', host='61.33.249.242', port='5432')
         if self.conn is None:
-            self.conn = psycopg.connect(database='spatialdb', user='dev',
-                                password='12qwaszx', host='127.0.0.1', port='5432')
+            #self.conn = psycopg.connect(database='spatialdb', user='dev', password='12qwaszx', host='127.0.0.1', port='5432')
+            self.conn = psycopg.connect(database='testdb', user='yk1226ull', password='inavi9610', host='61.33.249.241',
+                                        port='5432')
             pass
         return self.conn.closed  # 0이면 연결, 1이면 실패 or close
 

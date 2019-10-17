@@ -38,8 +38,32 @@ class UpdateId:
             pass
 
         # 노드 id null인 항목 업데이트
-        sqlstr = " select * from moct.moct_node_data where node_id is null or node_id = '' "
-        # rows = self.post_db.execute_query(sqlstr)
+        sqlstr = " select gid from moct.moct_node_data where node_id is null or node_id = '' "
+        rows = self.post_db.execute_query(sqlstr)
+
+        for row in rows:
+            _gid = row[0]
+            sqlstr = """
+            SELECT ab.region_cd 
+            FROM moct.moct_node_data as nd, moct.adm_boundary as ab  
+            WHERE nd.gid={0} AND ST_DWithin(nd._geom, ab._geom, 10000)  
+            ORDER BY ST_Distance(nd._geom, ab._geom) limit 1;
+            """.format(_gid)
+
+            _rows = self.post_db.execute_query(sqlstr)
+            _region_cd = _rows[0][0]
+
+            sqlstr = """ UPDATE moct.moct_node_data
+                                SET node_id = %s
+                                WHERE gid = %s"""
+
+            serial_num = self.get_max_num(_region_cd)
+            serial_num = int(serial_num) + 1
+            node_id = str(serial_num) + '00'
+
+            self.post_db.execute_with_args(sqlstr, (node_id, _gid))
+
+            pass
 
         self.logging_info("  if node_id is null 처리 완료: {0}".format(sw.CheckPoint()))
         pass
@@ -156,8 +180,8 @@ class UpdateId:
     # 권역 별 최대 일련번호 확인
     def get_region_serial_code_all(self):
         sqlstr = '''
-        select substring(link_id from 1 for 3)::integer
-            , max(substring(link_id from 4 for 5))::integer as serial
+        select substring(link_id from 1 for 3)
+            , max(substring(link_id from 4 for 5)) as serial
         from moct.moct_link_data 
         where is_delete is False
         group by substring(link_id from 1 for 3)
@@ -167,7 +191,9 @@ class UpdateId:
 
         _dict = {}
         for row in rows:
-            _dict[row[0]] = row[1]
+            if row[0] is None or len(row[0]) != 3:
+                continue
+            _dict[int(row[0])] = int(row[1])
             pass
         cursor.close()
         return _dict
@@ -254,7 +280,7 @@ class UpdateId:
         logsw = Stopwatch()
         self.post_db.connect()
         self.logging_info("DB 연결: {0}".format(logsw.CheckPoint()))
-        # self.node_repeat_adm()
+        self.node_repeat_adm()
         self.logging_info("노드 반복 종료: {0}".format(logsw.CheckPoint()))
 
         # 권역 번호를 가져와서 리스트 저장한다.
