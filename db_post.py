@@ -6,9 +6,21 @@ from .psycopg2 import psycopg
 
 class DbPost:
 
-    def __init__(self):
-        #self.conn = psycopg.connect(database='spatialdb', user='dev', password='12qwaszx', host='127.0.0.1', port='5432')
-        self.conn = psycopg.connect(database='testdb', user='yk1226ull', password='inavi9610', host='61.33.249.241', port='5432')
+    def __init__(self, _isLive):
+        # self.conn = psycopg.connect(database='spatialdb', user='dev', password='12qwaszx', host='127.0.0.1', port='5432')
+        self._isLive = _isLive
+        if self._isLive:
+            print('self._isTest 242')
+            self.conn = psycopg.connect(database='kslink', user='kslink_agent', password='ag9TmuS875',
+                                        host='61.33.249.242', port='5432')
+            pass
+        else:
+            print('self._isTest 241')
+            self.conn = psycopg.connect(database='testdb', user='yk1226ull', password='inavi9610', host='61.33.249.241',
+                                        port='5432')
+            # self.conn = psycopg.connect(database='spatialdb', user='dev', password='12qwaszx', host='127.0.0.1',
+            #                             port='5432')
+            pass
         pass
 
     def pg_query_insert(self, _sqlstr):
@@ -19,12 +31,21 @@ class DbPost:
         pass
 
     def connect(self):
-        # self.conn = psycopg.connect(database='kslink', user='kslink_agent',
-        #                        password='ag9TmuS875', host='61.33.249.242', port='5432')
+        # self.conn = psycopg.connect(database='spatialdb', user='dev', password='12qwaszx', host='127.0.0.1', port='5432')
+        print('conn is: {}'.format(self.conn))
         if self.conn is None:
-            #self.conn = psycopg.connect(database='spatialdb', user='dev', password='12qwaszx', host='127.0.0.1', port='5432')
-            self.conn = psycopg.connect(database='testdb', user='yk1226ull', password='inavi9610', host='61.33.249.241',
-                                        port='5432')
+            if self._isLive:
+                print('self._isTest 242')
+                self.conn = psycopg.connect(database='kslink', user='kslink_agent', password='ag9TmuS875',
+                                            host='61.33.249.242', port='5432')
+                pass
+            else:
+                # print('self._isTest 241')
+                self.conn = psycopg.connect(database='testdb', user='yk1226ull', password='inavi9610',
+                                            host='61.33.249.241', port='5432')
+                # self.conn = psycopg.connect(database='spatialdb', user='dev', password='12qwaszx', host='127.0.0.1',
+                #                             port='5432')
+                pass
             pass
         return self.conn.closed  # 0이면 연결, 1이면 실패 or close
 

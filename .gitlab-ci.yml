@@ -1,0 +1,27 @@
+stages:
+  - build
+
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+
+build:
+  stage: build
+  script:
+  - chcp 65001
+  - "& python -m compileall"
+  - CD __pycache__
+  - Get-ChildItem *.pyc -Recurse | Rename-Item -NewName { $_.Name -replace ".cpython-37.pyc", '.pyc' }
+  - RD moct_checker.pyc
+  - RD resources.pyc
+  - RD __init__.pyc
+  - MV *.pyc ../
+  - CD ..
+  - Get-ChildItem *.pyc | ForEach-Object { $remove = $_.Name -replace ".pyc", '.py' ; RD $remove; }
+  - RD __pycache__
+  - $bandizipPath = "C:\Program Files\bandizip\bandizip.exe"
+  - "& $bandizipPath c -storeroot:yes -y moct_checker.zip ./"
+  - "& $bandizipPath d -y moct_checker.zip moct-checker/.git/*"
+  tags: [VS2015]
+  artifacts:
+    paths:
+    - "moct_checker.zip"

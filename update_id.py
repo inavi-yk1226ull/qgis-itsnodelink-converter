@@ -1,12 +1,20 @@
+from PyQt5.QtCore import QThread
+from qgis.core import QgsTask, QgsMessageLog, Qgis, QgsApplication
+
 from .stopwatch import Stopwatch
 from .db_post import DbPost
 import logging
 import os
 
+MESSAGE_CATEGORY = 'UpdateId'
 
-class UpdateId:
-    def __init__(self, _logger):
-        self.post_db = DbPost()
+
+class UpdateId(QgsTask):
+    def __init__(self, description, _logger, islive):
+        super().__init__(description, QgsTask.CanCancel)
+        self.description = description
+        self.islive = islive
+        self.post_db = DbPost(self.islive)
         # 로그
         absFilePath = os.path.abspath(__file__)
         os.chdir(os.path.dirname(absFilePath))
@@ -15,6 +23,7 @@ class UpdateId:
 
         # 링크의 권역 별 최대 일련번호 적재
         self._dict = {}
+        self.logging_info("UpdateId init Create")
         pass
 
     def logging_info(self, msg):
@@ -31,7 +40,7 @@ class UpdateId:
         for row in rows:
             region_cd = row[0]
             serial_num = self.get_max_num(region_cd)
-            self.logging_info("  region_{0} get_max_num: {1}".format(region_cd, sw.CheckPoint()))
+            # self.logging_info("  region_{0} get_max_num: {1}".format(region_cd, sw.CheckPoint()))
             print("region_cd: {0}, num: {1}".format(region_cd, serial_num))
             self.node_update_id(region_cd, int(serial_num) + 1, sw)
             self.logging_info("  region_{0} 처리 완료: {1}".format(region_cd, sw.CheckPoint()))
@@ -70,9 +79,19 @@ class UpdateId:
 
     # 권역 최대 일련번호 확인
     def get_max_num(self, _int):
-        sqlstr = "select * from moct.fn_select_max_serial_num_node('{0}')".format(_int)
+        # 191022 where절 추가
+        # WHERE substring(area_serial FROM 4 FOR 1) != '9'
+        # 사유: 엠큐닉 입력 데이터의 id 부여가 9만번대로 이루어져 있음, 이를 제외함
+        sqlstr = "select * from moct.fn_select_max_serial_num_node('{0}') WHERE substring(area_serial FROM 4 FOR 1) != '9'".format(
+            _int)
         rows = self.post_db.execute_query(sqlstr)
-        return rows[0][0]
+        max_num = str(_int) + '00000'
+        try:
+            max_num = rows[0][0]
+        except:
+            max_num = str(_int) + '00000'
+
+        return max_num
 
     # 권역 내 노드의 일련번호 & id 부여
     def node_update_id(self, current_adm, serial_num, sw):
@@ -84,7 +103,7 @@ class UpdateId:
         gid_field = [desc[0] for desc in cursor.description].index("gid")
         tmp_field = [desc[0] for desc in cursor.description].index("tmpid")
 
-        self.logging_info("    대상 노드 select 완료: {0}".format(sw.CheckPoint()))
+        # self.logging_info("    대상 노드 select 완료: {0}".format(sw.CheckPoint()))
 
         for row in rows:
             sqlstr = """ UPDATE moct.moct_node_data
@@ -95,7 +114,7 @@ class UpdateId:
             gid = row[gid_field]
             self.post_db.execute_with_args(sqlstr, (node_id, gid))
 
-            self.logging_info("    node id update complete: {0}".format(sw.CheckPoint()))
+            # self.logging_info("    node id update complete: {0}".format(sw.CheckPoint()))
 
             # 연결된 링크 업데이트 _f
             tmpid = row[tmp_field]
@@ -106,7 +125,7 @@ class UpdateId:
             '''
             self.post_db.execute_with_args(sqlstr, (node_id, tmpid))
 
-            self.logging_info("    F link id update complete: {0}".format(sw.CheckPoint()))
+            # self.logging_info("    F link id update complete: {0}".format(sw.CheckPoint()))
 
             # 연결된 링크 업데이트 _t
             tmpid = row[tmp_field]
@@ -117,7 +136,7 @@ class UpdateId:
             '''
             self.post_db.execute_with_args(sqlstr, (node_id, tmpid))
 
-            self.logging_info("    T link id update complete: {0}".format(sw.CheckPoint()))
+            # self.logging_info("    T link id update complete: {0}".format(sw.CheckPoint()))
 
             pass
         cursor.close()
@@ -179,12 +198,16 @@ class UpdateId:
 
     # 권역 별 최대 일련번호 확인
     def get_region_serial_code_all(self):
+        # 191022 where 절 and 조건 추가
+        # 각 3자리로 group
+        # 나머지 5자리로 max값 확인
+        #
         sqlstr = '''
         select substring(link_id from 1 for 3)
-            , max(substring(link_id from 4 for 5)) as serial
-        from moct.moct_link_data 
-        where is_delete is False
-        group by substring(link_id from 1 for 3)
+               , max(substring(link_id from 4 for 5)) as serial
+          from moct.moct_link_data 
+         where substring(link_id from 4 for 1) <> '9'
+         group by substring(link_id from 1 for 3)
         '''
         cursor = self.post_db.execute_query_cursor(sqlstr)
         rows = cursor.fetchall()
@@ -217,7 +240,7 @@ class UpdateId:
         tnode_field = [desc[0] for desc in cursor.description].index("t_node")
 
         # 재생성
-        post_db_2 = DbPost()
+        post_db_2 = DbPost(self.islive)
         post_db_2.connect()
 
         for row in cursor:
@@ -245,29 +268,34 @@ class UpdateId:
 
             curs.close()
 
-            self.logging_info("    get link's region: {0}".format(sw.CheckPoint()))
+            # self.logging_info("    get link's region: {0}".format(sw.CheckPoint()))
 
             # 메인
             # _max_num = int(self.link_get_max_num(_region_cd)) + 1
-            _max_num = int(_region_cd + str(self._dict[int(_region_cd)] + 1))
+            # _max_num = int(_region_cd + str(self._dict[int(_region_cd)] + 1))
 
-            _link_id = str(_max_num) + '00'
+            _max_num = _region_cd + str(self._dict.get(int(_region_cd), 0) + 1).zfill(5)
+
+            # self.logging_info("    calc max_num: {0}, {1}".format(sw.CheckPoint(), _max_num))
+
+            _link_id = _max_num + '00'
             _sqlstr = """ UPDATE moct.moct_link_data
                         SET link_id = %s
                         WHERE gid = %s"""
             self.post_db.execute_with_args(_sqlstr, (_link_id, _gid))
-            self._dict[int(_region_cd)] = self._dict[int(_region_cd)] + 1
+            self._dict[int(_region_cd)] = self._dict.get(int(_region_cd), 0) + 1
 
-            self.logging_info("    link update: {0}".format(sw.CheckPoint()))
+            # self.logging_info("    link update: {0}".format(sw.CheckPoint()))
+            # print("    link update: {0}".format(_gid))
 
             # 쌍
-            _max_num = _max_num + 1
-            _link_id = str(_max_num) + '00'
+            _max_num = _region_cd + str(self._dict.get(int(_region_cd), 0) + 1).zfill(5)
+            _link_id = _max_num + '00'
             sqlstr = """ UPDATE moct.moct_link_data
                         SET link_id = %s
                         WHERE f_node = %s AND t_node = %s """
             self.post_db.execute_with_args(sqlstr, (_link_id, _tnode, _fnode))
-            self._dict[int(_region_cd)] = self._dict[int(_region_cd)] + 1
+            self._dict[int(_region_cd)] = self._dict.get(int(_region_cd), 0) + 1
 
             self.logging_info("    pair link update: {0}".format(sw.CheckPoint()))
 
@@ -275,9 +303,11 @@ class UpdateId:
         cursor.close()
         pass
 
-    def main_process(self):
+    def run(self):
         # 커넥션 get
+        self.logging_info("start run")
         logsw = Stopwatch()
+        self.logging_info("DB 연결 시도: {0}".format(logsw.CheckPoint()))
         self.post_db.connect()
         self.logging_info("DB 연결: {0}".format(logsw.CheckPoint()))
         self.node_repeat_adm()
@@ -291,6 +321,25 @@ class UpdateId:
         self.update_link_id(False)
         self.logging_info("링크F 반복 종료: {0}".format(logsw.CheckPoint()))
         self.logging_info("ID 부여 작업 종료: {0}".format(logsw.GetTotal()))
-        pass
+        return True
 
+    def finished(self, result):
+        if result:
+            QgsMessageLog.logMessage(f'Task UpdateId completed', MESSAGE_CATEGORY, Qgis.Success)
+        else:
+            QgsMessageLog.logMessage(f'Task UpdateId failed', MESSAGE_CATEGORY, Qgis.Critical)
+
+    def cancel(self):
+        QgsMessageLog.logMessage(f'Task UpdateId was canceled', MESSAGE_CATEGORY, Qgis.Info)
+        super().cancel()
+    pass
+
+
+def task_create_and_execute(logger, islive):
+    logger.info('task start')
+    task = UpdateId('UpdateId', logger, islive)
+    logger.info('task create')
+    #task.run()
+    QgsApplication.taskManager().addTask(task)
+    logger.info('task add')
     pass

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
+from qgis.PyQt.QtCore import QCoreApplication
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
 
@@ -9,7 +9,7 @@ from .moct_checker_dialog import MoctCheckerDialog
 from .login.login_dialog import LoginDialog
 import os.path
 
-isLocal = True
+isLocal = False
 
 
 class MoctChecker:
@@ -47,7 +47,7 @@ class MoctChecker:
 
     def initGui(self):
         icon_path = ':/plugins/moct_checker/icon.png'
-        self.add_action(icon_path, text='Invai Moct Checker', callback=self.run, parent=self.iface.mainWindow())
+        self.add_action(icon_path, text='Inavi Moct Checker', callback=self.run, parent=self.iface.mainWindow())
         self.first_start = True
 
     def unload(self):
