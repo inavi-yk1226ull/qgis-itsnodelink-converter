@@ -227,17 +227,20 @@ class UpdateId(QgsTask):
         self.logging_info("    is_bigger_t: {0}, {1}".format(is_bigger_t, sw.CheckPoint()))
         sqlstr = ''
         if is_bigger_t:
-            sqlstr = "select * from moct.moct_link_data where CAST(f_node AS BIGINT) > CAST(t_node AS BIGINT) AND (link_id is null or link_id = '') AND is_delete IS NOT True"
+            sqlstr = "select * from moct.moct_link_data where not (f_node is null or f_node = '') and not (t_node is null or t_node = '') and CAST(f_node AS BIGINT) > CAST(t_node AS BIGINT) AND (link_id is null or link_id = '') AND is_delete IS NOT True"
             pass
         else:
-            sqlstr = "select * from moct.moct_link_data where CAST(t_node AS BIGINT) > CAST(f_node AS BIGINT) AND (link_id is null or link_id = '') AND is_delete IS NOT True"
+            sqlstr = "select * from moct.moct_link_data where not (f_node is null or f_node = '') and not (t_node is null or t_node = '') and CAST(t_node AS BIGINT) > CAST(f_node AS BIGINT) AND (link_id is null or link_id = '') AND is_delete IS NOT True"
             pass
-
+        print(sqlstr)
         cursor = self.post_db.execute_query_cursor(sqlstr)
 
         gid_field = [desc[0] for desc in cursor.description].index("gid")
         fnode_field = [desc[0] for desc in cursor.description].index("f_node")
         tnode_field = [desc[0] for desc in cursor.description].index("t_node")
+        rank_field = [desc[0] for desc in cursor.description].index("road_rank")
+        type_field = [desc[0] for desc in cursor.description].index("road_type")
+
 
         # 재생성
         post_db_2 = DbPost(self.islive)
@@ -245,6 +248,8 @@ class UpdateId(QgsTask):
 
         for row in cursor:
             _gid = row[gid_field]
+            _rank = row[rank_field]
+            _type = row[type_field]
             _fnode = row[fnode_field]
             _tnode = row[tnode_field]
 
@@ -293,8 +298,8 @@ class UpdateId(QgsTask):
             _link_id = _max_num + '00'
             sqlstr = """ UPDATE moct.moct_link_data
                         SET link_id = %s
-                        WHERE f_node = %s AND t_node = %s """
-            self.post_db.execute_with_args(sqlstr, (_link_id, _tnode, _fnode))
+                        WHERE f_node = %s AND t_node = %s AND road_rank = %s AND road_type = %s is_delete is not true"""
+            self.post_db.execute_with_args(sqlstr, (_link_id, _tnode, _fnode, _rank, _type))
             self._dict[int(_region_cd)] = self._dict.get(int(_region_cd), 0) + 1
 
             self.logging_info("    pair link update: {0}".format(sw.CheckPoint()))
