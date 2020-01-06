@@ -4,3 +4,4 @@ logging.log
 test.py
 moct_checker.nsi
 Setup.exe
+*.exe
