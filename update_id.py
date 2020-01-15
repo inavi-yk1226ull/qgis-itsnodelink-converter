@@ -285,7 +285,7 @@ class UpdateId(QgsTask):
 
             _link_id = _max_num + '00'
             _sqlstr = """ UPDATE moct.moct_link_data
-                        SET link_id = %s
+                        SET link_id = %s 
                         WHERE gid = %s"""
             self.post_db.execute_with_args(_sqlstr, (_link_id, _gid))
             self._dict[int(_region_cd)] = self._dict.get(int(_region_cd), 0) + 1
@@ -298,7 +298,7 @@ class UpdateId(QgsTask):
             _link_id = _max_num + '00'
             sqlstr = """ UPDATE moct.moct_link_data
                         SET link_id = %s
-                        WHERE f_node = %s AND t_node = %s AND road_rank = %s AND road_type = %s is_delete is not true"""
+                        WHERE f_node = %s AND t_node = %s AND road_rank = %s AND road_type = %s AND is_delete is not True"""
             self.post_db.execute_with_args(sqlstr, (_link_id, _tnode, _fnode, _rank, _type))
             self._dict[int(_region_cd)] = self._dict.get(int(_region_cd), 0) + 1
 
