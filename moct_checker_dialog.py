@@ -215,12 +215,6 @@ class MoctCheckerDialog(QtWidgets.QDialog, FORM_CLASS):
         super(MoctCheckerDialog, self).show()
 
     def ButtonSetIdListener(self):
-        # task_create_and_execute(self.mlogger, self.islive)
-        print('1')
         task = UpdateId('UpdateId', self.mlogger, self.islive)
         task.run()
-        print('2')
-        # self.tm.addTask(task)
-        # QgsApplication.taskManager().addTask(task)
-        print('3')
         pass

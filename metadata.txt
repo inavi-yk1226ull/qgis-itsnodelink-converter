@@ -1,47 +1,27 @@
-# This file contains metadata for your plugin.
-
-# This file should be included when you package your plugin.# Mandatory items:
-
 [general]
-name=Moct Checker
+name=iNavi_표준노드링크 검증
 qgisMinimumVersion=3.0
-description=Plugin for moct data checker
-version=0.1
-author=Null
-email=Null
-
-about=Provide a brief description of the plugin and its purpose.
-
-tracker=http://bugs
-repository=http://repo
-# End of mandatory metadata
-
-# Recommended items:
+description=표준노드링크 링크ID부여 및 무결성검증
+about=표준노드링크 링크ID부여 및 무결성검증
 
 hasProcessingProvider=no
-# Uncomment the following line and add your changelog:
-# changelog=
-
-# Tags are comma separated with spaces allowed
-tags=python
-
-homepage=http://homepage
-category=Plugins
 icon=icon.png
-# experimental flag
 experimental=False
-
-# deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False
-
-# Since QGIS 3.8, a comma separated list of plugins to be installed
-# (or upgraded) can be specified.
-# Check the documentation for more information.
-# plugin_dependencies=
-
-Category of the plugin: Raster, Vector, Database or Web
-# category=
-
-# If the plugin can run on QGIS Server.
 server=False
 
+version=1.1.2
+changelog=
+	1.1.2
+      * 로그인 기능 통합
+	  * 프로젝트 명칭 통일
+	1.1.1
+      * 쌍선 ID 부여 관련 오류 수정
+	1.1.0
+      * Test버전 추가
+	1.0.2
+      * 링크 반대 차선 확인 조건 추가
+	1.0.1
+      * 도로 ID 9만번대 오류 수정
+	1.0.0
+      * 초기 배포
