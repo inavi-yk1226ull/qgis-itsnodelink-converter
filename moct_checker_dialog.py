@@ -1,20 +1,11 @@
 # -*- coding: utf-8 -*-
 
-# import base module
 import os
 import logging
-
-# import qgis core
 from qgis.core import QgsWkbTypes, QgsProject, Qgis, QgsApplication
-
-# import qgis pyqt
 from qgis.PyQt import uic
 from qgis.PyQt import QtWidgets
-
-# import pyqt5
 from PyQt5.QtWidgets import QMessageBox
-
-# import make by me
 from .update_id import UpdateId, task_create_and_execute
 from .db_post import DbPost
 
@@ -115,6 +106,7 @@ class MoctCheckerDialog(QtWidgets.QDialog, FORM_CLASS):
         pass
 
     def button_enabled(self, enabled):
+        '''기능 시작/종료 시 버튼 disable '''
         self.btn_check.setEnabled(enabled)
         self.btn_load_link.setEnabled(enabled)
         self.btn_load_node.setEnabled(enabled)
@@ -199,12 +191,10 @@ class MoctCheckerDialog(QtWidgets.QDialog, FORM_CLASS):
 
     def RbtnSetVersionListener(self):
         if self.rbtn_istest.isChecked():
-            print('is test')
             self.islive = False
             self.post_db = DbPost(self.islive)
             pass
         elif self.rbtn_islive.isChecked():
-            print('is live')
             self.islive = True
             self.post_db = DbPost(self.islive)
             pass
