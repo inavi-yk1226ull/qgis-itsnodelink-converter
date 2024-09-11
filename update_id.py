@@ -1,35 +1,34 @@
 from PyQt5.QtCore import QThread
 from qgis.core import QgsTask, QgsMessageLog, Qgis, QgsApplication
+from qgis.PyQt.QtCore import pyqtSignal
 
 from .stopwatch import Stopwatch
 from .db_post import DbPost
-import logging
 import os
 
 MESSAGE_CATEGORY = 'UpdateId'
 
 
 class UpdateId(QgsTask):
-    def __init__(self, description, _logger, islive):
+    end_signal = pyqtSignal(bool)
+
+    def __init__(self, description, islive):
         super().__init__(description, QgsTask.CanCancel)
         self.description = description
-        self.islive = islive
+        self.islive = True
         self.post_db = DbPost(self.islive)
+
         # 로그
         absFilePath = os.path.abspath(__file__)
         os.chdir(os.path.dirname(absFilePath))
         self.logpath = os.path.join(os.getcwd(), "logging.log")
-        self.mlogger = _logger
 
         # 링크의 권역 별 최대 일련번호 적재
         self._dict = {}
         self.logging_info("UpdateId init Create")
-        pass
 
     def logging_info(self, msg):
-        self.mlogger = logging.getLogger("time")
-        self.mlogger.info(msg)
-        pass
+        QgsMessageLog.logMessage(msg, MESSAGE_CATEGORY, Qgis.Success)
 
     # 노드 권역 반복작업
     def node_repeat_adm(self):
@@ -40,9 +39,8 @@ class UpdateId(QgsTask):
         for row in rows:
             region_cd = row[0]
             serial_num = self.get_max_num(region_cd)
-            # self.logging_info("  region_{0} get_max_num: {1}".format(region_cd, sw.CheckPoint()))
             self.node_update_id(region_cd, int(serial_num) + 1, sw)
-            self.logging_info("  region_{0} 처리 완료: {1}".format(region_cd, sw.CheckPoint()))
+            self.logging_info("  권역코드_{0} 처리 완료: {1}".format(region_cd, sw.CheckPoint()))
 
         # 노드 id null인 항목 업데이트
         sqlstr = " select gid from moct.moct_node_data where node_id is null or node_id = '' "
@@ -52,9 +50,9 @@ class UpdateId(QgsTask):
             _gid = row[0]
             sqlstr = """
             SELECT ab.region_cd 
-            FROM moct.moct_node_data as nd, moct.adm_boundary as ab  
-            WHERE nd.gid={0} AND ST_DWithin(nd._geom, ab._geom, 10000)  
-            ORDER BY ST_Distance(nd._geom, ab._geom) limit 1;
+            FROM moct.moct_node_data as nd, moct.adm_boundary as ab
+            WHERE nd.gid={0} AND ST_DWithin(nd.geom, ab.geom, 10000)
+            ORDER BY ST_Distance(nd.geom, ab.geom) limit 1;
             """.format(_gid)
 
             _rows = self.post_db.execute_query(sqlstr)
@@ -70,10 +68,7 @@ class UpdateId(QgsTask):
 
             self.post_db.execute_with_args(sqlstr, (node_id, _gid))
 
-            pass
-
-        self.logging_info("  if node_id is null 처리 완료: {0}".format(sw.CheckPoint()))
-        pass
+        self.logging_info("행정경계 Intersect 실패 노드 ID 부여 완료: {0}".format(sw.CheckPoint()))
 
     # 권역 최대 일련번호 확인
     def get_max_num(self, _int):
@@ -128,8 +123,6 @@ class UpdateId(QgsTask):
                 WHERE sostnodeid = %s
             '''
             self.post_db.execute_with_args(sqlstr, (node_id, tmpid))
-
-            pass
         cursor.close()
 
     # 권역 별 최대 일련번호 확인
@@ -152,22 +145,17 @@ class UpdateId(QgsTask):
             if row[0] is None or len(row[0]) != 3:
                 continue
             _dict[int(row[0])] = int(row[1])
-            pass
         cursor.close()
         return _dict
 
     # 링크 별 id 업데이트 및 쌍 링크 업데이트
     def update_link_id(self, is_bigger_t):
         sw = Stopwatch()
-        self.logging_info("    is_bigger_t: {0}, {1}".format(is_bigger_t, sw.CheckPoint()))
         sqlstr = ''
         if is_bigger_t:
             sqlstr = "select * from moct.moct_link_data where not (f_node is null or f_node = '') and not (t_node is null or t_node = '') and CAST(f_node AS BIGINT) > CAST(t_node AS BIGINT) AND (link_id is null or link_id = '') AND is_delete IS NOT True"
-            pass
         else:
             sqlstr = "select * from moct.moct_link_data where not (f_node is null or f_node = '') and not (t_node is null or t_node = '') and CAST(t_node AS BIGINT) > CAST(f_node AS BIGINT) AND (link_id is null or link_id = '') AND is_delete IS NOT True"
-            pass
-        print(sqlstr)
         cursor = self.post_db.execute_query_cursor(sqlstr)
 
         gid_field = [desc[0] for desc in cursor.description].index("gid")
@@ -175,7 +163,6 @@ class UpdateId(QgsTask):
         tnode_field = [desc[0] for desc in cursor.description].index("t_node")
         rank_field = [desc[0] for desc in cursor.description].index("road_rank")
         type_field = [desc[0] for desc in cursor.description].index("road_type")
-
 
         # 재생성
         post_db_2 = DbPost(self.islive)
@@ -191,11 +178,11 @@ class UpdateId(QgsTask):
             curs = post_db_2.execute_query_cursor("""
                 select region_cd, st_length(
                     st_intersection(
-                        _geom, (select _geom from moct.moct_link_data where gid = '{0}')
+                        geom, (select geom from moct.moct_link_data where gid = '{0}')
                     )
                 ) from moct.adm_boundary as ab 
                     where ST_Intersects(
-                        ab._geom, (select _geom from moct.moct_link_data where gid = '{0}')
+                        ab.geom, (select geom from moct.moct_link_data where gid = '{0}')
                     )
                 order by st_length desc
             """.format(_gid))
@@ -205,9 +192,7 @@ class UpdateId(QgsTask):
             except:
                 self.logging_info("    get link's region error gid is {0}, {1}".format(_gid, row))
                 continue
-
             curs.close()
-
 
             # 링크 ID 부여
             _max_num = _region_cd + str(self._dict.get(int(_region_cd), 0) + 1).zfill(5)
@@ -229,10 +214,7 @@ class UpdateId(QgsTask):
             self._dict[int(_region_cd)] = self._dict.get(int(_region_cd), 0) + 1
 
             self.logging_info("    pair link update: {0}".format(sw.CheckPoint()))
-
-            pass
         cursor.close()
-        pass
 
     def run(self):
         # 커넥션 get
@@ -259,17 +241,8 @@ class UpdateId(QgsTask):
             QgsMessageLog.logMessage(f'Task UpdateId completed', MESSAGE_CATEGORY, Qgis.Success)
         else:
             QgsMessageLog.logMessage(f'Task UpdateId failed', MESSAGE_CATEGORY, Qgis.Critical)
+        self.end_signal.emit(result)
 
     def cancel(self):
         QgsMessageLog.logMessage(f'Task UpdateId was canceled', MESSAGE_CATEGORY, Qgis.Info)
         super().cancel()
-    pass
-
-
-def task_create_and_execute(logger, islive):
-    logger.info('task start')
-    task = UpdateId('UpdateId', logger, islive)
-    logger.info('task create')
-    QgsApplication.taskManager().addTask(task)
-    logger.info('task add')
-    pass

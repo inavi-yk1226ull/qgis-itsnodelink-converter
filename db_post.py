@@ -1,41 +1,47 @@
 # -*- coding: utf-8 -*-
 from qgis.core import QgsDataSourceUri, QgsVectorLayer, QgsProject
 
-from .psycopg2 import psycopg
+import psycopg2 as psycopg
 
+# 배포 VM
+PG_HOST = "10.10.82.177"
+PG_DB_NAME = "kslink"
+PG_PORT = "54003"
+PG_USER = "postgres"
+PG_PASSWORD = "p58v3VTLypDDAG"
+PG_GEOM = "geom"
+PG_EPSG = "5186"
+
+# 로컬
+# PG_HOST = "127.0.0.1"
+# PG_DB_NAME = "kslink"
+# PG_PORT = "5432"
+# PG_USER = "postgres"
+# PG_PASSWORD = "inavi9610"
+# PG_GEOM = "geom"
+# PG_EPSG = "5186"
+
+PG_CONNECTION_STRING = (
+    f"host='{PG_HOST}' port={PG_PORT} dbname='{PG_DB_NAME}' user='{PG_USER}' password='{PG_PASSWORD}'"
+)
+def get_conn():
+    conn = psycopg.connect(PG_CONNECTION_STRING)
+    cur = conn.cursor()
+    return cur, conn
 
 class DbPost:
-
     def __init__(self, _isLive):
-        self._isLive = _isLive
-        if self._isLive:
-            self.conn = psycopg.connect(database='kslink', user='kslink_agent', password='ag9TmuS875',
-                                        host='61.33.249.242', port='5432')
-            pass
-        else:
-            self.conn = psycopg.connect(database='testdb', user='yk1226ull', password='inavi9610', host='61.33.249.241',
-                                        port='5432')
-            pass
-        pass
+        self.conn = psycopg.connect(PG_CONNECTION_STRING)
 
     def pg_query_insert(self, _sqlstr):
         cur = self.conn.cursor()
         cur.execute(_sqlstr)
         self.conn.commit()
         cur.close()
-        pass
 
     def connect(self):
         if self.conn is None:
-            if self._isLive:
-                self.conn = psycopg.connect(database='kslink', user='kslink_agent', password='ag9TmuS875',
-                                            host='61.33.249.242', port='5432')
-                pass
-            else:
-                self.conn = psycopg.connect(database='testdb', user='yk1226ull', password='inavi9610',
-                                            host='61.33.249.241', port='5432')
-                pass
-            pass
+            self.conn = psycopg.connect(PG_CONNECTION_STRING)
         return self.conn.closed  # 0이면 연결, 1이면 실패 or close
 
     def execute(self, _sqlstr):
@@ -43,15 +49,21 @@ class DbPost:
         cur.execute(_sqlstr)
         self.conn.commit()
         cur.close()
-        pass
 
     def execute_query(self, _sqlstr):
-        cur = self.conn.cursor()
-        cur.execute(_sqlstr)
-        results = cur.fetchall()
-        self.conn.commit()
-        cur.close()
-        return results
+        try:
+            result = None
+            cur, conn = get_conn()
+            with conn:
+                with cur:
+                    cur.execute(_sqlstr)
+                    result = cur.fetchall()
+                conn.commit()
+            if conn.closed == 0:
+                conn.close()
+        except Exception as e:
+            print(f"Error fetching data: {e}")
+        return result
 
     def execute_query_cursor(self, _sqlstr):
         cur = self.conn.cursor()
@@ -78,4 +90,3 @@ class DbPost:
         cur.execute(sqlstr, param)
         self.conn.commit()
         cur.close()
-        pass

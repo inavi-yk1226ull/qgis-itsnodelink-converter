@@ -7,29 +7,29 @@
     <x>0</x>
     <y>0</y>
     <width>252</width>
-    <height>252</height>
+    <height>201</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
     <width>252</width>
-    <height>252</height>
+    <height>201</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
     <width>252</width>
-    <height>252</height>
+    <height>201</height>
    </size>
   </property>
   <property name="windowTitle">
-   <string>KS id 부여/ 검증 툴 v1.0.0</string>
+   <string>ITS ID 부여 툴 v1.2.0</string>
   </property>
   <widget class="QGroupBox" name="groupBox">
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>70</y>
+     <y>10</y>
      <width>231</width>
      <height>81</height>
     </rect>
@@ -73,7 +73,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>검색</string>
+     <string>검증</string>
     </property>
    </widget>
    <widget class="QRadioButton" name="rbtn_forall_2">
@@ -87,6 +87,9 @@
     </property>
     <property name="text">
      <string>ALL (1,2,3,4,5)</string>
+    </property>
+    <property name="checked">
+     <bool>true</bool>
     </property>
    </widget>
    <widget class="QPushButton" name="btn_setid">
@@ -107,7 +110,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>160</y>
+     <y>110</y>
      <width>111</width>
      <height>81</height>
     </rect>
@@ -146,7 +149,7 @@
    <property name="geometry">
     <rect>
      <x>130</x>
-     <y>160</y>
+     <y>110</y>
      <width>111</width>
      <height>81</height>
     </rect>
@@ -178,45 +181,6 @@
     </property>
     <property name="text">
      <string>전체 초기화</string>
-    </property>
-   </widget>
-  </widget>
-  <widget class="QGroupBox" name="groupBox_4">
-   <property name="geometry">
-    <rect>
-     <x>9</x>
-     <y>9</y>
-     <width>231</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="title">
-    <string>Test/Live 선택</string>
-   </property>
-   <widget class="QRadioButton" name="rbtn_istest">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>20</y>
-      <width>90</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Test 버전</string>
-    </property>
-   </widget>
-   <widget class="QRadioButton" name="rbtn_islive">
-    <property name="geometry">
-     <rect>
-      <x>130</x>
-      <y>20</y>
-      <width>90</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Live 버전</string>
     </property>
    </widget>
   </widget>
@@ -328,38 +292,6 @@
     </hint>
    </hints>
   </connection>
-  <connection>
-   <sender>rbtn_istest</sender>
-   <signal>clicked()</signal>
-   <receiver>Dialog</receiver>
-   <slot>RbtnSetVersionListener()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>70</x>
-     <y>32</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>283</x>
-     <y>203</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>rbtn_islive</sender>
-   <signal>clicked()</signal>
-   <receiver>Dialog</receiver>
-   <slot>RbtnSetVersionListener()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>149</x>
-     <y>32</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>288</x>
-     <y>174</y>
-    </hint>
-   </hints>
-  </connection>
  </connections>
  <slots>
   <slot>ButtonCheckListener()</slot>
@@ -368,6 +300,5 @@
   <slot>ButtonTruncateTableListener()</slot>
   <slot>ButtonRemoveFeatureListener()</slot>
   <slot>ButtonSetIdListener()</slot>
-  <slot>RbtnSetVersionListener()</slot>
  </slots>
 </ui>

@@ -1,17 +1,17 @@
 [general]
-name=iNavi_표준노드링크 검증
-qgisMinimumVersion=3.0
-description=표준노드링크 링크ID부여 및 무결성검증
-about=표준노드링크 링크ID부여 및 무결성검증
-
-hasProcessingProvider=no
+name=iNavi_표준노드링크 링크ID 부여 및 무결성 검증
+qgisMinimumVersion=3.36
+qgisMaximumVersion=3.36
+description=표준노드링크 링크ID 부여 및 무결성 검증
+about=표준노드링크 링크ID 부여 및 무결성검증 
 icon=icon.png
-experimental=False
-deprecated=False
-server=False
+author=Inavi Systems
 
-version=1.1.2
+version=1.2.0
 changelog=
+      1.2.0
+      * Qgis(3.36ver) 대응
+      * Qgis 지원 버전 변경 (3.0 ~ 최신 -> 3.36 ~ 3.36)
 	1.1.2
       * 로그인 기능 통합
 	  * 프로젝트 명칭 통일

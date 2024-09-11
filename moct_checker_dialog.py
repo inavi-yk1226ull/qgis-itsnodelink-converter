@@ -6,8 +6,9 @@ from qgis.core import QgsWkbTypes, QgsProject, Qgis, QgsApplication
 from qgis.PyQt import uic
 from qgis.PyQt import QtWidgets
 from PyQt5.QtWidgets import QMessageBox
-from .update_id import UpdateId, task_create_and_execute
-from .db_post import DbPost
+from qgis.core import QgsTask, QgsMessageLog, Qgis, QgsApplication
+from .update_id import UpdateId
+from .db_post import PG_DB_NAME, PG_EPSG, PG_GEOM, PG_HOST, PG_PASSWORD, PG_PORT, PG_USER, DbPost
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'moct_checker_dialog_base.ui'))
 
@@ -18,8 +19,9 @@ class MoctCheckerDialog(QtWidgets.QDialog, FORM_CLASS):
         self.tm = QgsApplication.taskManager()
 
         # 초기화
-        self.islive = None
-
+        self.islive = True
+        self.post_db=DbPost(True)
+        
         self.link_layer = None
         self.link_layer_name = 'Inavi_link_error'
         self.link_layer_dbname = 'moct_link_err'
@@ -31,42 +33,42 @@ class MoctCheckerDialog(QtWidgets.QDialog, FORM_CLASS):
         absFilePath = os.path.abspath(__file__)
         os.chdir(os.path.dirname(absFilePath))
         self.logpath = os.path.join(os.getcwd(), "logging.log")
-
-        self.mlogger = logging.getLogger("time")
-        self.mlogger.setLevel(logging.INFO)
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        file_handler = logging.FileHandler(self.logpath)
-        file_handler.setFormatter(formatter)
-        self.mlogger.addHandler(file_handler)
-
         self.setupUi(self)
-        pass
 
     def logging_info(self, log_name, msg):
-        self.mlogger.info(msg)
-        pass
+        QgsMessageLog.logMessage(msg, log_name, Qgis.Success)
 
     def query_check_moctdata(self, table, code):
-        self.logging_info("checker", "테이블: {}".format(table))
         sqlstr_node = "select * from moct.fn_node_insert_error('{0}')"
         sqlstr_link = "select * from moct.fn_link_insert_error('{0}')"
 
         if table == "link":
             sqlstr = sqlstr_link.format(code)
-            pass
         elif table == "node":
             sqlstr = sqlstr_node.format(code)
-            pass
         else:
-            self.logging_info("checker", "return")
+            self.logging_info("Checker", "return")
             return
 
-        self.logging_info("checker", "검수 시작: {0}".format(sqlstr))
+        self.logging_info("Checker", "검수 시작: {0}".format(table))
         self.post_db.execute(sqlstr)
-        self.logging_info("checker", "검수 종료")
+        self.logging_info("Checker", "검수 종료")
 
-    def ButtonCheckListener(self):
-        # 체크박스 버튼 확인
+    def ButtonCheckListener(self, _trash=None):
+        qbox = QMessageBox()
+        qbox.setWindowModality(True)
+        qbox.setWindowTitle('무결성 검증')
+        qbox.setText('무결성 검증 과정을 진행합니다.\r\n데이터를 수정할 경우 데이터에 영향을 줄 수 있으니,\r\n모든 작업이 끝난 뒤 실행하는 것을 권장합니다.\r\n실행합니까?')
+        qbox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        reply = qbox.exec_()
+        if reply == QMessageBox.Yes:
+            self.button_enabled(False)
+            check_data_task = QgsTask.fromFunction('Checker', self.CheckData, on_finished=self.CheckDataEnd)
+            QgsApplication.taskManager().addTask(check_data_task)
+            
+
+    def CheckData(self, task):
+        # 검증
         workstate_code = ''
         if self.rbtn_forall.isChecked():
             workstate_code = "a"
@@ -74,107 +76,63 @@ class MoctCheckerDialog(QtWidgets.QDialog, FORM_CLASS):
             workstate_code = "n"
         else:
             workstate_code = "b"
-            pass
 
         # DB 연결 구문
         # 검출 DB 연결 후 T/F 반환
-        self.logging_info("info", "연결 구문 시작")
+        self.logging_info("Checker", "DB 연결")
 
         if self.post_db.connect == 1:
             # 연결 실패
             return
-        pass
-
-        # 스레드 처리 필요
-        # 데이터 처리 시간 동안 별도 안내 필요
-        # 결과 적재
-        # 검증 쿼리 실행 구문
-        QMessageBox.information(self.iface.mainWindow(), '시작', '검수 과정을 시작합니다.')
-
-        self.button_enabled(False)
-
         # 검증
         self.query_check_moctdata("link", workstate_code)
         self.query_check_moctdata("node", workstate_code)
-
-        self.completed()
-        pass
-
-    def completed(self):
-        self.button_enabled(True)
-        QMessageBox.information(self.iface.mainWindow(), '완료', '작업이 종료되었습니다.')
-        pass
+        return True
 
     def button_enabled(self, enabled):
         '''기능 시작/종료 시 버튼 disable '''
         self.btn_check.setEnabled(enabled)
         self.btn_load_link.setEnabled(enabled)
         self.btn_load_node.setEnabled(enabled)
-        pass
+        self.btn_setid.setEnabled(enabled)
+        self.btn_removefeature.setEnabled(enabled)
+        self.btn_truncatetable.setEnabled(enabled)
 
-    def ButtonLoadLinkLayerListener(self):
-        # 검증 결과  호출 구문_링크
-        if self.islive is not None:
-            pass
-        else:
-            self.iface.messageBar().pushMessage('Test/Live 선택', '실행 버전을 선택해 주세요.', level=Qgis.Warning)
-            return
-
-        if self.islive is True:
-            self.post_db.load_pg_layer('61.33.249.242', '5432', 'kslink', 'kslink_agent', 'ag9TmuS875',
-                                       QgsWkbTypes.MultiLineString,
-                                       '5186', 'moct', self.link_layer_dbname, '_geom', '', self.link_layer_name)
-            pass
-        elif self.islive is False:
-            self.post_db.load_pg_layer('61.33.249.241', '5432', 'testdb', 'yk1226ull', 'inavi9610',
-                                       QgsWkbTypes.MultiLineString,
-                                       '5186', 'moct', self.link_layer_dbname, '_geom', '', self.link_layer_name)
-            pass
+    def ButtonLoadLinkLayerListener(self, _trash=None):
+        # 검증 결과 호출 구문_링크
+        self.post_db.load_pg_layer(PG_HOST, PG_PORT, PG_DB_NAME, PG_USER, PG_PASSWORD,
+                                    QgsWkbTypes.MultiLineString,
+                                    PG_EPSG, 'moct', self.link_layer_dbname, PG_GEOM, '', self.link_layer_name)
         self.link_layer = QgsProject.instance().mapLayersByName(self.link_layer_name)[0]
 
-    def ButtonLoadNodeLayerListener(self):
+    def ButtonLoadNodeLayerListener(self, _trash=None):
         # 검증 결과 호출 구문_노드
-        if self.islive is not None:
-            pass
-        else:
-            self.iface.messageBar().pushMessage('Test/Live 선택', '실행 버전을 선택해 주세요.', level=Qgis.Warning)
-            return
-
-        if self.islive is True:
-            self.post_db.load_pg_layer('61.33.249.242', '5432', 'kslink', 'kslink_agent', 'ag9TmuS875',
+        self.post_db.load_pg_layer(PG_HOST, PG_PORT, PG_DB_NAME, PG_USER, PG_PASSWORD,
                                        QgsWkbTypes.Point,
-                                       '5186', 'moct', self.node_layer_dbname, '_geom', '', self.node_layer_name)
-            pass
-        elif self.islive is False:
-            self.post_db.load_pg_layer('61.33.249.241', '5432', 'testdb', 'yk1226ull', 'inavi9610', QgsWkbTypes.Point,
-                                       '5186', 'moct', self.node_layer_dbname, '_geom', '', self.node_layer_name)
-            pass
-
+                                       PG_EPSG, 'moct', self.node_layer_dbname, PG_GEOM, '', self.node_layer_name)
         self.node_layer = QgsProject.instance().mapLayersByName(self.node_layer_name)[0]
 
-    def ButtonRemoveFeatureListener(self):
+    def ButtonRemoveFeatureListener(self, _trash=None):
         # 선택 피쳐 삭제
         features = None
         active_layer = self.iface.activeLayer()
         if active_layer.name() == self.node_layer_name:
             features = active_layer.selectedFeatures()
-            pass
         elif active_layer.name() == self.link_layer_name:
             features = active_layer.selectedFeatures()
         else:
             QMessageBox.information(self.iface.mainWindow(), '오류', '_error 레이어를 선택해주세요.')
-        pass
 
         if features is None:
             self.iface.messageBar().pushMessage('피쳐 선택', '선택된 피쳐가 없습니다.', level=Qgis.Warning)
             return
         else:
             pr = active_layer.dataProvider()
-            pr.deleteFeatures(features.id())
-            pass
-        pass
+            for f in features:
+                pr.deleteFeatures([f.id()])
+        active_layer.triggerRepaint()
 
-    def ButtonTruncateTableListener(self):
+    def ButtonTruncateTableListener(self, _trash=None):
         qbox = QMessageBox()
         qbox.setWindowModality(True)
         qbox.setWindowTitle('오류 테이블 초기화')
@@ -185,26 +143,28 @@ class MoctCheckerDialog(QtWidgets.QDialog, FORM_CLASS):
             self.post_db.execute('Truncate moct.moct_link_err;')
             self.post_db.execute('Truncate moct.moct_node_err;')
             QMessageBox.information(self.iface.mainWindow(), '완료', '테이블 초기화 종료.')
-        else:
-            pass
-        pass
-
-    def RbtnSetVersionListener(self):
-        if self.rbtn_istest.isChecked():
-            self.islive = False
-            self.post_db = DbPost(self.islive)
-            pass
-        elif self.rbtn_islive.isChecked():
-            self.islive = True
-            self.post_db = DbPost(self.islive)
-            pass
-        pass
 
     def show(self, iface):
         self.iface = iface
         super(MoctCheckerDialog, self).show()
 
-    def ButtonSetIdListener(self):
-        task = UpdateId('UpdateId', self.mlogger, self.islive)
-        task.run()
-        pass
+    def ButtonSetIdListener(self, _trash=None):
+        qbox = QMessageBox()
+        qbox.setWindowModality(True)
+        qbox.setWindowTitle('ID 부여 진행')
+        qbox.setText('ID 부여 과정을 진행합니다.\r\n데이터를 수정할 경우 데이터에 영향을 줄 수 있으니,\r\n모든 작업이 끝난 뒤 실행하는 것을 권장합니다.\r\n실행합니까?')
+        qbox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        reply = qbox.exec_()
+        if reply == QMessageBox.Yes:
+            self.button_enabled(False)
+            task = UpdateId('UpdateId', self.islive)
+            task.end_signal.connect(self.SetIdEnd)
+            QgsApplication.taskManager().addTask(task)
+
+    def SetIdEnd(self, result):
+        QMessageBox.information(self.iface.mainWindow(), '완료', '작업이 종료되었습니다.')
+        self.button_enabled(True)
+
+    def CheckDataEnd(self, exception, result=None):
+        QMessageBox.information(self.iface.mainWindow(), '완료', '작업이 종료되었습니다.')
+        self.button_enabled(True)

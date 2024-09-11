@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-def classFactory(iface):  # pylint: disable=invalid-name
-#     from .moct_checker import MoctChecker
-    from .iQgis_21_NodeLinkChecker import iQgisNodeLinkChecker
+def classFactory(iface):
+    from .iQ_ItsNodeLinkViewer import iQgisNodeLinkChecker
     return iQgisNodeLinkChecker(iface)
