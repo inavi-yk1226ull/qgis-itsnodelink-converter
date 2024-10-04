@@ -13,7 +13,7 @@ from .resources import *
 isLocal = False
 
 
-class iQgisNodeLinkChecker:
+class iQgisNodeLinkConverter:
 
     def __init__(self, iface):
         self.iface = iface

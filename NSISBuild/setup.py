@@ -26,7 +26,7 @@ ext_modules = []
 for parent, dirnames, filenames in os.walk(os.getcwd()):
     for fn in filenames:
         if fn.lower().endswith(".py") and fn != "__init__.py" and fn != "resources.py":
-            idx = parent.find("iQ_ItsNodeLinkViewer")
+            idx = parent.find("iQ_ItsNodeLinkConverter")
             path = parent[idx:].replace("\\", ".")
 
             file_ext_idx = fn.find(".py")
@@ -41,7 +41,7 @@ for parent, dirnames, filenames in os.walk(os.getcwd()):
             ext_modules.append(ext)
 
 setup(
-    name="iQ_ItsNodeLinkViewer",  ## 패키지할 이름
+    name="iQ_ItsNodeLinkConverter",  ## 패키지할 이름
     # cmdclass = {'build_ext': build_ext}, ## 패키징할 빌드 프로세스 지정
     # ##Cython의 build_ext 모듈 (c파일 제작 후, c 컴파일러로 빌드하여 pyd까지 생성)
     # ext_modules = ext_modules ## 빌드할 Python 확장 모듈의 목록
